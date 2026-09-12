@@ -1,0 +1,30 @@
+{
+  "dark": {
+    "bg": "#140F20",
+    "fg": "#F6F0FF",
+    "muted": "#BEAFD2",
+    "line": "#443453",
+    "primary": "#C49AFF",
+    "amber": "#F2BE77",
+    "teal": "#71D3C7",
+    "lavender": "#DED0FF",
+    "amethyst": "#BCA8F3",
+    "surface": "#2A1F3E",
+    "edge": "#1D152C",
+    "grid": "#3A2A4D"
+  },
+  "light": {
+    "bg": "#F5F0FA",
+    "fg": "#2C173F",
+    "muted": "#695278",
+    "line": "#D1BEE1",
+    "primary": "#7840B7",
+    "amber": "#8B5719",
+    "teal": "#166B65",
+    "lavender": "#795DA3",
+    "amethyst": "#71529E",
+    "surface": "#E5D6EF",
+    "edge": "#CBB4DE",
+    "grid": "#DFD0E9"
+  }
+}

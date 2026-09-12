@@ -1,0 +1,15 @@
+__pycache__/
+node_modules/
+.DS_Store
+local-history/
+
+# Local review material and inactive automation are not part of the profile.
+assets/readme/preview/
+assets/readme/DESIGN.md
+assets/readme/source/build_preview.cjs
+assets/readme/source/check_preview.cjs
+assets/readme/source/check_quality.cjs
+assets/readme/source/check_icons.cjs
+assets/readme/source/check_glow.cjs
+assets/readme/source/check_contributions.py
+assets/readme/source/refresh-contributions.yml.example
