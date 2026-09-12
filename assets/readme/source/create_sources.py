@@ -7,8 +7,8 @@ from html import escape
 
 ASSETS=Path(__file__).resolve().parents[1]
 PALETTES={
- 'dark':{'bg':'#140F20','fg':'#F6F0FF','muted':'#BEAFD2','line':'#443453','primary':'#C49AFF','amber':'#F2BE77','teal':'#71D3C7','lavender':'#DED0FF','amethyst':'#BCA8F3','surface':'#2A1F3E','edge':'#1D152C','grid':'#3A2A4D'},
- 'light':{'bg':'#F5F0FA','fg':'#2C173F','muted':'#695278','line':'#D1BEE1','primary':'#7840B7','amber':'#8B5719','teal':'#166B65','lavender':'#795DA3','amethyst':'#71529E','surface':'#E5D6EF','edge':'#CBB4DE','grid':'#DFD0E9'}
+ 'dark':{'bg':'#140F20','fg':'#F6F0FF','muted':'#BEAFD2','line':'#443453','primary':'#C49AFF','amber':'#FFAF70','teal':'#71D3C7','lavender':'#DED0FF','amethyst':'#BCA8F3','surface':'#2A1F3E','edge':'#1D152C','grid':'#3A2A4D'},
+ 'light':{'bg':'#F5F0FA','fg':'#2C173F','muted':'#695278','line':'#D1BEE1','primary':'#7840B7','amber':'#995018','teal':'#166B65','lavender':'#795DA3','amethyst':'#71529E','surface':'#E5D6EF','edge':'#CBB4DE','grid':'#DFD0E9'}
 }
 SANS="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
 MONO="ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace"
@@ -52,12 +52,15 @@ def scene(theme,compact=False):
  def pts(vertices,z=0):return ' '.join(f'{a:.2f},{b:.2f}' for a,b in [p(x,y,z) for x,y in vertices])
  def poly(vertices,fill,z=0,extra=''):return f'<polygon points="{pts(vertices,z)}" fill="{fill}" {extra}/>'
  def prism(vertices,z,depth,top,side1,side2):
-  out=[]
-  # Every side is included, top face covers the back faces. Visible faces get directional color.
+  out=[];faces=[]
+  # This camera faces +x/+y. Cull back-facing walls and paint visible walls
+  # far to near, so concave letter notches cannot cut across nearer faces.
   for a,b in zip(vertices,vertices[1:]+vertices[:1]):
+   if not (b[0]<a[0] or b[1]>a[1]):continue
    coords=[p(*a,z),p(*b,z),p(*b,z-depth),p(*a,z-depth)]
    color=side1 if b[0]!=a[0] else side2
-   out.append(f'<polygon points="{" ".join(f"{x:.2f},{y:.2f}" for x,y in coords)}" fill="{color}"/>')
+   faces.append((sum(a)+sum(b),f'<polygon points="{" ".join(f"{x:.2f},{y:.2f}" for x,y in coords)}" fill="{color}"/>'))
+  out.extend(face for _,face in sorted(faces))
   out.append(poly(vertices,top,z,extra='stroke="#DCC5EC" stroke-opacity=".18" stroke-width="1"'))
   return ''.join(out)
  def pathworld(vertices,z=0,stroke=None,extra=''):
@@ -67,7 +70,7 @@ def scene(theme,compact=False):
   return f'<path d="{d}" fill="none" stroke="{stroke or c["line"]}" {weight} {extra}/>'
  out=[f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-labelledby="title desc">
  <title id="title">Elijah Tomas — The digital workshop</title>
- <desc id="desc">Elijah Tomas. Ideas into systems. A purple ET monogram assembles on an isometric workbench. Amber marks drafting tools; teal marks inspection. A terminal types the name and the sequence design, code, test.</desc>
+ <desc id="desc">Elijah Tomas. Ideas into systems. A continuous ET monogram assembles on a purple workbench, with orange and teal side facets and tools. A small three-bar Orthodox cross is engraved on the terminal frame. The terminal types the name and the sequence design, code, test.</desc>
  <defs>
   <linearGradient id="backdrop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="{c['bg']}"/><stop offset="1" stop-color="{'#261633' if dark else '#EEE4F5'}"/></linearGradient>
   <radialGradient id="atmosphere"><stop stop-color="{'#8E52B6' if dark else '#D8B5EF'}" stop-opacity=".29"/><stop offset="1" stop-color="{c['bg']}" stop-opacity="0"/></radialGradient>
@@ -112,13 +115,12 @@ def scene(theme,compact=False):
   out.append(pathworld(route,4,col,extra='stroke-width="2.5" stroke-dasharray="5 6"'))
  out.append('</g>')
  E=[(24,30),(120,30),(120,64),(58,64),(58,100),(108,100),(108,132),(58,132),(58,172),(120,172),(120,206),(24,206)]
- TC=[(144,30),(272,30),(272,64),(144,64)]
- TS=[(191,64),(225,64),(225,206),(191,206)]
- for shape in [E,TC,TS]:out.append(poly(shape,'none',2,extra=f'stroke="{c["primary"]}" stroke-opacity=".55" stroke-dasharray="3 5"'))
- # One custom letter and two interlocking T components, with directional side faces.
- out.append('<g id="letter-e">'+prism(E,61,42,'url(#ceramic)','#A28AB8','#685078')+'</g>')
- out.append('<g id="letter-t-stem">'+prism(TS,61,42,'url(#enamel)','#9B62BC','#63377F')+'</g>')
- out.append('<g id="letter-t-cap">'+prism(TC,61,42,'url(#enamel)','#9B62BC','#63377F')+'</g>')
+ T=[(144,30),(272,30),(272,64),(225,64),(225,206),(191,206),(191,64),(144,64)]
+ for shape in [E,T]:out.append(poly(shape,'none',2,extra=f'stroke="{c["primary"]}" stroke-opacity=".55" stroke-dasharray="3 5"'))
+ # Each letter is one continuous extrusion. The T has no internal cap/stem
+ # face and moves as one layer, so its join cannot separate or double-fade.
+ out.append('<g id="letter-e">'+prism(E,61,42,'url(#ceramic)','#6ABAAE','#367E7D')+'</g>')
+ out.append('<g id="letter-t">'+prism(T,61,42,'url(#enamel)','#E68C51','#AD5738')+'</g>')
  # Front-edge sockets light up after assembly, no fabricated measurements or live status.
  out.append('<g id="sockets">')
  for a,color in [(56,c['primary']),(144,c['amber']),(232,c['teal'])]:
@@ -128,7 +130,7 @@ def scene(theme,compact=False):
  tiles=[('idea',(106,-114),'draft',c['amber'],-9),('code',(-108,110),'assemble',c['primary'],8),('refine',(374,72),'inspect',c['teal'],-6)]
  for key,(wx,wy),kind,color,angle in tiles:
   px,py=p(wx,wy,35)
-  out.append(f'<g id="tool-{key}" transform="translate({px:.1f} {py:.1f}) rotate({angle})"><rect x="-43" y="-35" width="88" height="88" rx="19" fill="#10081A" opacity=".3"/><rect x="-44" y="-44" width="88" height="88" rx="18" fill="{c["edge"]}" stroke="{c["line"]}"/><path d="M-26 -35H26" stroke="{color}" stroke-opacity=".7"/><g transform="translate(-30 -30) scale(.94)">')
+  out.append(f'<g id="tool-{key}" transform="translate({px:.1f} {py:.1f}) rotate({angle})"><rect x="-43" y="-35" width="88" height="88" rx="19" fill="#10081A" opacity=".3"/><rect x="-44" y="-44" width="88" height="88" rx="18" fill="{c["edge"]}" stroke="{color}" stroke-opacity=".55"/><rect x="-43" y="-43" width="86" height="86" rx="17" fill="{color}" opacity=".09"/><path d="M-26 -35H26" stroke="{color}" stroke-opacity=".85"/><g transform="translate(-30 -30) scale(.94)">')
   out.append(icon_art(kind,color)+'</g></g>')
  # A sweep exists only in the animation; the source SVG always shows the settled state.
  sx,sy=p(-10,146,72)
@@ -141,14 +143,17 @@ def scene(theme,compact=False):
  # Small framed terminal, dark in both themes for a coherent tool identity.
  tx,ty,tw,th=(42,748,636,206) if compact else (56,389,514,221)
  out.append(f'<g id="terminal" font-family="{MONO}"><rect x="{tx+5}" y="{ty+9}" width="{tw}" height="{th}" rx="14" fill="#10081A" opacity=".25"/><rect x="{tx}" y="{ty}" width="{tw}" height="{th}" rx="14" fill="#170F24" stroke="#59406D"/><path d="M{tx} {ty+43}H{tx+tw}" stroke="#3D2B50"/>')
- for k,col in enumerate(['#F2BE77','#C29BEA','#71D3C7']):out.append(f'<circle cx="{tx+22+k*18}" cy="{ty+22}" r="4" fill="{col}"/>')
+ for k,col in enumerate(['#FFAF70','#C29BEA','#71D3C7']):out.append(f'<circle cx="{tx+22+k*18}" cy="{ty+22}" r="4" fill="{col}"/>')
  out.append(text(tx+90,ty+28,15,'elijah@local : ~','#BDA7D5'))
+ # A quiet brass engraving: short title board, long crossbar, slanted footrest.
+ # Reference: https://www.oca.org/questions/liturgicarts/the-russian-orthodox-cross
+ out.append(f'<g id="orthodox-engraving" transform="translate({tx+tw-29} {ty+22})"><rect x="-15" y="-17" width="30" height="34" rx="5" fill="#251A2B" stroke="#F2BE77" stroke-opacity=".24"/><path d="M0 -13V14 M-5 -8H5 M-8 -1H8 M-5 7L5 11" fill="none" stroke="#F2BE77" stroke-width="1.7" stroke-linecap="round" opacity=".9"/></g>')
  fs=24 if compact else 21
  y1=ty+82;y2=ty+120;y3=ty+163
  out.append(text(tx+22,y1,fs,'❯','#D7B4F8'))
- out.append(f'<g id="terminal-command">{text(tx+49,y1,fs,"whoami", "#EBDDFC")}</g>')
+ out.append(f'<g id="terminal-command">{text(tx+49,y1,fs,"whoami", "#FFAF70")}</g>')
  out.append(f'<g id="terminal-name">{text(tx+22,y2,fs,"Elijah Tomas", "#EBDDFC")}</g>')
- out.append(f'<g id="terminal-process">{text(tx+22,y3,fs-2,"design → code → test", "#BDA7D5")}</g>')
+ out.append(f'<g id="terminal-process"><text x="{tx+22}" y="{y3}" font-size="{fs-2}" fill="#BDA7D5"><tspan fill="#FFAF70">design</tspan> → <tspan fill="#C49AFF">code</tspan> → <tspan fill="#71D3C7">test</tspan></text></g>')
  out.append(f'<g id="terminal-cursor"><rect x="{tx+22}" y="{ty+th-26}" width="9" height="3" fill="#71D3C7"/></g></g>')
  # Quiet footer closes the scene like a maker's plate, not a status dashboard.
  out.append(f'<g font-family="{MONO}">{text(42 if compact else 56,H-31,15,"SOFTWARE / DESIGN / DATA",c["muted"],"letter-spacing=\"1.1\"")}</g>')
@@ -175,8 +180,7 @@ def main():
  {'id':'tool-code','start':.35,'end':1.35,'from':[-40,-22]},
  {'id':'tool-refine','start':.6,'end':1.6,'from':[36,26]},
  {'id':'letter-e','start':.35,'end':1.5,'from':[-36,-58]},
- {'id':'letter-t-stem','start':.9,'end':2.05,'from':[28,-64]},
- {'id':'letter-t-cap','start':1.3,'end':2.45,'from':[28,-78]},
+ {'id':'letter-t','start':.9,'end':2.2,'from':[28,-64]},
  {'id':'scan','start':2.35,'end':2.55,'from':[0,0],'drift':[360,0], 'drift_time':[2.45,4.0],'exit':[3.8,4.1],'mask':'scan-mask'},
  {'id':'sockets','start':3.3,'end':4.15,'reveal':'x'},
  {'id':'terminal-command','start':.35,'end':1.2,'reveal':'x','steps':6},

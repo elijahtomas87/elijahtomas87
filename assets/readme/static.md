@@ -2,7 +2,7 @@
   <source media="(prefers-color-scheme: dark) and (max-width: 600px)" srcset="./hero-dark-compact.svg">
   <source media="(prefers-color-scheme: dark)" srcset="./hero-dark.svg">
   <source media="(max-width: 600px)" srcset="./hero-light-compact.svg">
-  <img src="./hero-light.svg" width="100%" alt="Elijah Tomas. Ideas into systems. A purple ET monogram on a workbench with amber drafting tools, teal inspection details, and a terminal introduction.">
+  <img src="./hero-light.svg" width="100%" alt="Elijah Tomas. Ideas into systems. A continuous ET monogram on a purple workbench with orange and teal facets and tools. A small three-bar Orthodox cross is engraved on the terminal frame.">
 </picture>
 
 # Hi, I'm Elijah.

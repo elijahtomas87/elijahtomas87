@@ -10,7 +10,7 @@
   <source media="(prefers-color-scheme: dark) and (max-width: 600px)" srcset="./assets/readme/hero-dark-compact.gif">
   <source media="(prefers-color-scheme: dark)" srcset="./assets/readme/hero-dark.gif">
   <source media="(max-width: 600px)" srcset="./assets/readme/hero-light-compact.gif">
-  <img src="./assets/readme/hero-light.gif" width="100%" alt="Elijah Tomas. Ideas into systems. A purple ET monogram assembles on a workbench with amber drafting tools and teal inspection details. A terminal types the name and the sequence design, code, test.">
+  <img src="./assets/readme/hero-light.gif" width="100%" alt="Elijah Tomas. Ideas into systems. A continuous ET monogram assembles on a purple workbench with orange and teal facets and tools. A small three-bar Orthodox cross is engraved on the terminal frame. The terminal types the name and the sequence design, code, test.">
 </picture>
 
 # Hi, I'm Elijah.

@@ -78,6 +78,19 @@ def render(svg,node,spec):
                 frames.append(visible);durations.append(round(1000/spec['fps']));last_hash=digest
             if abs(t-5.2)<.001:hold_reference=visible.copy()
         output=svg.with_suffix('.webp')
+        # Independently compare the settled T against the complete static SVG,
+        # not just the layer compositor, to catch bad joins or paint ordering.
+        t_shape=next(n for n in root.iter() if n.get('id')=='letter-t')
+        points=[tuple(map(float,pair.split(','))) for n in t_shape.iter() for pair in n.get('points','').split()]
+        t_box=(int(min(x for x,y in points)*scale)-2,int(min(y for x,y in points)*scale)-2,
+               int(max(x for x,y in points)*scale)+3,int(max(y for x,y in points)*scale)+3)
+        with Image.open(tmp/'settled.png') as static:
+            difference=ImageChops.difference(static.convert('RGBA').crop(t_box),hold_reference.crop(t_box))
+            static_t_error=max(high for low,high in difference.getextrema())
+            # Rasterizing isolated layers and alpha-compositing them rounds
+            # channels slightly differently from rasterizing the whole SVG.
+            # This tight tolerance admits that rounding, not shifted geometry.
+            assert static_t_error<=3,'Settled T differs from static vector geometry'
         hold_reference.save(ASSETS/'preview'/f'{svg.stem}-source-hold.png')
         print(f'Encoding {output.name}: {base_image.size}, {len(frames)} unique frames',flush=True)
         frames[0].save(output,format='WEBP',save_all=True,append_images=frames[1:],duration=durations,
@@ -109,7 +122,9 @@ def render(svg,node,spec):
         return {'asset':output.name,'dimensions':list(base_image.size),'bytes':output.stat().st_size,
                 'encoded_frames':len(hashes),'duration_ms':elapsed,'source_fps':spec['fps'],
                 'hold_colors':max_colors,'encoding':'lossless RGBA WebP','hold_matches_source_exactly':True,
-                'hold_pixel_still':True,'loop_boundary_identical':True,'rounded_corners_transparent':True}
+                'hold_pixel_still':True,'loop_boundary_identical':True,'rounded_corners_transparent':True,
+                'settled_t_matches_static_geometry':True,'static_t_peak_channel_error':static_t_error,
+                'static_vector_channel_tolerance':3}
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--node',default='node');parser.add_argument('--asset')
