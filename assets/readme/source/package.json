@@ -1,0 +1,7 @@
+{
+  "name": "elijah-profile-artwork",
+  "private": true,
+  "description": "Local SVG rendering and README preview tools; no runtime services.",
+  "dependencies": {"sharp": "0.35.4", "marked": "17.0.5"},
+  "devDependencies": {"playwright": "1.62.1"}
+}
